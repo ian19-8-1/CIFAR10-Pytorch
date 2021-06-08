@@ -11,10 +11,10 @@ from torch.utils.tensorboard import SummaryWriter
 
 ### Hyperparameters
 
-batch_size = 4
+batch_size = 32
 num_workers = 2
 lr = 0.001
-num_epochs = 2
+num_epochs = 100
 
 
 
@@ -27,6 +27,7 @@ trainset = torchvision.datasets.CIFAR10(root='./data',
                                         train=True,
                                         download=True,
                                         transform=transform)
+
 trainloader = torch.utils.data.DataLoader(trainset,                 # ???
                                           batch_size=batch_size,
                                           shuffle=True,

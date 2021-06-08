@@ -1,6 +1,7 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from Dataset import CIFAR10
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -14,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 batch_size = 32
 num_workers = 2
 lr = 0.001
-num_epochs = 100
+num_epochs = 200
 
 
 
@@ -23,20 +24,25 @@ num_epochs = 100
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainset = torchvision.datasets.CIFAR10(root='./data',
-                                        train=True,
-                                        download=True,
-                                        transform=transform)
-
+# trainset = torchvision.datasets.CIFAR10(root='./data',
+#                                         train=True,
+#                                         download=True,
+#                                         transform=transform)
+trainset = CIFAR10(root='./data',
+                   train=True,
+                   transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset,                 # ???
                                           batch_size=batch_size,
                                           shuffle=True,
                                           num_workers=num_workers)
 
-testset = torchvision.datasets.CIFAR10(root='.data',
-                                       train=False,
-                                       download=True,
-                                       transform=transform)
+# testset = torchvision.datasets.CIFAR10(root='.data',
+#                                        train=False,
+#                                        download=True,
+#                                        transform=transform)
+testset = CIFAR10(root='./data',
+                  train=False,
+                  transform=transform)
 testloader = torch.utils.data.DataLoader(testset,
                                          batch_size=batch_size,
                                          shuffle=False,
@@ -116,12 +122,12 @@ for epoch in range(num_epochs):
         running_loss += loss.item()
         epoch_loss = running_loss / 2000
         if i % 2000 == 1999:
-            print('[%d, %5d] loss: %.3f, accuracy: %.3f' %
-                  (epoch + 1, i + 1, epoch_loss, epoch_acc))
             running_loss = 0.0      # ???
             correct = 0
             total = 0
 
+    print('epoch: %d loss: %.3f, accuracy: %.3f' %
+          (epoch + 1,  epoch_loss, epoch_acc))
     writer.add_scalar("Loss/train", epoch_loss, epoch)
     writer.add_scalar("Accuracy/train", epoch_acc, epoch)
 

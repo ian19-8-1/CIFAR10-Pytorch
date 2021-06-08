@@ -7,6 +7,8 @@ import os
 
 import pickle
 
+import torchvision.transforms as transforms
+
 
 def unpickle(file):
     with open(file, 'rb') as fo:
@@ -16,7 +18,7 @@ def unpickle(file):
 
 class CIFAR10(Dataset):
 
-    def __init__(self, root, train, transform):
+    def __init__(self, root, train, transform=None):
         self.dir = os.path.join(root, 'cifar-10-batches-py/')
         self.train = train
         self.transform = transform
@@ -35,9 +37,10 @@ class CIFAR10(Dataset):
         # print(self.data[b'labels'])
         # print(self.data)
 
-        # self.apply_transform()
+        self.reshape_data()
 
-        # self.reshape_data()
+        self.apply_transform()
+
 
 
     def __len__(self):
@@ -52,11 +55,8 @@ class CIFAR10(Dataset):
             self.data[key].extend(data[key])
 
     def apply_transform(self):
-        for img in self.data[b'data']:
-            # pil_img = Image.fromarray(img)
-            # self.transform(pil_img)
-
-            self.transform(img)
+        for index, img in enumerate(self.data[b'data']):
+            self.data[b'data'][index] = self.transform(img)
 
     def reshape_data(self):
         for index, array in enumerate(self.data[b'data']):
@@ -67,7 +67,9 @@ class CIFAR10(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = CIFAR10(root='./data', train=False, transform=0)
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    dataset = CIFAR10(root='./data', train=False, transform=transform)
     print(len(dataset))
     # print(dataset.__getitem__(0))
     print(dataset[0])

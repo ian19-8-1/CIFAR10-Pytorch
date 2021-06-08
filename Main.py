@@ -7,6 +7,8 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
+from torch.utils.tensorboard import SummaryWriter
+
 ### Hyperparameters
 
 batch_size = 4
@@ -72,6 +74,9 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 
 
+writer = SummaryWriter()
+
+
 
 ### Loss function and optimizer
 
@@ -87,6 +92,8 @@ for epoch in range(num_epochs):
     running_loss = 0.0
     total = 0
     correct = 0
+    epoch_acc = 0.0
+    epoch_loss = 0.0
     for i, data in enumerate(trainloader, 0):
 
         inputs, labels = data[0].to(device), data[1].to(device)     # ???
@@ -103,12 +110,23 @@ for epoch in range(num_epochs):
 
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        epoch_acc = correct / total
+
         running_loss += loss.item()
+        epoch_loss = running_loss / 2000
         if i % 2000 == 1999:
             print('[%d, %5d] loss: %.3f, accuracy: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2000, correct / total))
-            running_loss = 0.0
+                  (epoch + 1, i + 1, epoch_loss, epoch_acc))
+            running_loss = 0.0      # ???
+            correct = 0
+            total = 0
 
+    writer.add_scalar("Loss/train", epoch_loss, epoch)
+    writer.add_scalar("Accuracy/train", epoch_acc, epoch)
+
+
+writer.flush()
+writer.close()
 print('Finished Training')
 
 

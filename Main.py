@@ -12,7 +12,7 @@ import torch.optim as optim
 batch_size = 4
 num_workers = 2
 lr = 0.001
-num_epochs = 15
+num_epochs = 2
 
 
 
@@ -36,7 +36,7 @@ testset = torchvision.datasets.CIFAR10(root='.data',
                                        transform=transform)
 testloader = torch.utils.data.DataLoader(testset,
                                          batch_size=batch_size,
-                                         suffle=False,
+                                         shuffle=False,
                                          num_workers=num_workers)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
@@ -65,14 +65,18 @@ class Net(nn.Module):
         return x
 
 
-net = Net()
+model = Net()
+
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+model.to(device)
 
 
 
 ### Loss function and optimizer
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
 
 
 
@@ -81,21 +85,49 @@ optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.9)
 for epoch in range(num_epochs):
 
     running_loss = 0.0
+    total = 0
+    correct = 0
     for i, data in enumerate(trainloader, 0):
 
-        inputs, labels = data       # ???
+        inputs, labels = data[0].to(device), data[1].to(device)     # ???
+        # inputs, labels = data
 
         optimizer.zero_grad()
 
-        outputs = net(inputs)
+        outputs = model(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+
         loss = criterion(outputs, labels)       # ???
         loss.backward()                         # ???
         optimizer.step()                        # ???
 
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
         running_loss += loss.item()
         if i % 2000 == 1999:
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2000))
+            print('[%d, %5d] loss: %.3f, accuracy: %.3f' %
+                  (epoch + 1, i + 1, running_loss / 2000, correct / total))
             running_loss = 0.0
 
 print('Finished Training')
+
+
+
+### Testing
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+    for data in testloader:
+        images, labels = data[0].to(device), data[1].to(device)
+        # images, labels = data
+
+        outputs = model(images)
+        _, predicted = torch.max(outputs.data, 1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+# print("total: ", total)
+# print("correct: ", correct)
+print('Test accuracy: %.3f' % (correct / total))

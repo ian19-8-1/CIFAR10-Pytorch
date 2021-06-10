@@ -15,9 +15,8 @@ from torch.utils.tensorboard import SummaryWriter
 batch_size = 32
 num_workers = 2
 lr = 0.001
-wd = 0.01
-
-num_epochs = 200
+wd = 0.1
+num_epochs = 400
 
 
 
@@ -66,21 +65,13 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
-        self.do1 = nn.Dropout(0.4)
-        self.do2 = nn.Dropout(0.4)
-        self.do3 = nn.Dropout(0.4)
-
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = torch.flatten(x, 1) # flatten all dimensions except batch
-
-        # x = F.relu(self.fc1(x))
-        # x = F.relu(self.fc2(x))
-        # x = self.fc3(x)
-        x = F.relu(self.fc1(self.do1(x)))
-        x = F.relu(self.fc2(self.do2(x)))
-        x = self.fc3(self.do3(x))
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x
 
 
